@@ -1,24 +1,58 @@
 # dev_test.py
-from vfextractor.pipeline import extract_report
-from vfextractor.utils.preprocess import load_image, to_grayscale, denoise
 import cv2
+from pathlib import Path
+
+from vfextractor.postprocessing.extract import Extractor
+from vfextractor.config.templates import read_template
+from vfextractor.postprocessing.export import save_json
+
+# Base Directory
+BASE_DIR = Path(__file__).resolve().parent
 
 # Path to your sample image
-image_path = r"C:\Users\PC\Projects\TTSH\vf-extractor\examples\HVF - OD.png"
+image_path = BASE_DIR / "examples" / "vrvf_od.jpg"
+json_path = BASE_DIR / "data" / "vrvf_template.json"
+output_path = BASE_DIR / "data" / "result.json"
 
+def preview_crop(image, crop, section_name):
+    cv2.imshow(f"Crop: {section_name}", crop)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-# Optional: preprocess the image
-image = load_image(image_path)
+json_data = read_template(json_path)
+print(json_data)
 
-# If you want to visualize
-cv2.imshow("Preprocessed Image", image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# Load Image
+image = cv2.imread(str(image_path))
 
-# Extract report using the pipeline
-report = extract_report(image_path)
+extractor = Extractor()
 
-# Print structured output
-print("Report Type:", report.report_type)
-print("Patient Info:", report.patient_info)
-print("Matrix:", report.matrix)
+data = {}
+for section_name, boxes in json_data.items():
+    print("Section: " + section_name)
+
+    labels = ["x", "y", "width", "height"]
+
+    for i in range(len(boxes)): 
+        print(labels[i] + ": " + str(boxes[i]))
+
+    x = boxes[0]
+    y = boxes[1]
+    w = boxes[2]
+    h = boxes[3]
+
+    cropped_img = image[y:y+h, x:x+w]
+    # preview_crop(image, cropped_img, section_name)
+
+    data[section_name] = extractor.extract(cropped_img)
+
+print(data)
+
+save_json(
+    data=data,
+    output_path=output_path
+)
+
+# data = extractor.extract(image_path)
+
+# print(data)
