@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
+from typing import Any, Dict 
 
-
-def read_template(template_path: str | Path) -> dict[str, list[list[int]]]:
+def read_template(template_path: str | Path) -> dict[str, Any]:
     """
     Read OCR extraction template from JSON file.
 
@@ -10,8 +10,9 @@ def read_template(template_path: str | Path) -> dict[str, list[list[int]]]:
         template_path (str | Path): Path to template JSON.
 
     Returns:
-        dict: Mapping of section_name to list of bounding boxes
-              in (x, y, width, height) format.
+        dict: The loaded JSON content. The structure is 
+              dict[section_name, dict[key, value]], where the inner 
+              dict contains keys like 'crop_region' and 'labels'.
     """
     template_path = Path(template_path)
 
