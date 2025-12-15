@@ -19,7 +19,7 @@ DATA_DIR = APP_DIR / 'data'
 
 # Template Paths
 HVF_TEMPLATE_PATH = TEMPLATE_DIR / 'hvf.json'
-VRVF_TEMPLATE_PATH = TEMPLATE_DIR / 'vrvf.json' # Assuming this file exists
+VRVF_TEMPLATE_PATH = TEMPLATE_DIR / 'vrvf.json'
 
 # Map template selection names to their actual file paths
 TEMPLATE_MAP = {
@@ -145,7 +145,6 @@ def single_extraction_view():
                 return
 
             with st.spinner("Processing files and extracting data... This may take a moment."):
-                vf_extractor = Extractor()
                 extracted_data_list = [] # List for string summary
                 extracted_data_objects = [] # List for structured data
 
@@ -164,8 +163,6 @@ def single_extraction_view():
                         tmp_file_path = tmp_file.name
                     
                     try:
-                        # Assuming cropped_pipeline returns a structured object (e.g., dict or list of dicts)
-
                         data = cropped_pipeline(tmp_file_path, template_path, OUTPUT_DIR)
                         extracted_data_objects.append(data)
                         extracted_data_list.append(f"{eye_name} Data Extracted.")
@@ -174,11 +171,19 @@ def single_extraction_view():
                     finally:
                         os.unlink(tmp_file_path)
 
-                # Process Left Eye
-                process_file(uploaded_file_lehvf, "Left Eye HVF", selected_template_path)
+                with st.spinner("Extraction Data from Left Eye..."):
+                    # Process Left Eye
+                    left_template_path = selected_template_path.with_stem(
+                        selected_template_path.stem + "_left"
+                    )
+                    process_file(uploaded_file_lehvf, "Left Eye HVF", left_template_path)
                 
-                # Process Right Eye (Need to implement logic for rehvf, assuming it uses the same template)
-                process_file(uploaded_file_rehvf, "Right Eye HVF", selected_template_path)
+                with st.spinner("Extracting Data from Right Eye..."):
+                    # Process Right Eye
+                    right_template_path = selected_template_path.with_stem(
+                        selected_template_path.stem + "_right"
+                    )
+                    process_file(uploaded_file_rehvf, "Right Eye HVF", right_template_path)
 
 
                 final_data_summary = "\n".join(extracted_data_list)
