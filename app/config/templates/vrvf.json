@@ -1,0 +1,8 @@
+{
+    "patient_details": [0, 0, 860, 123],
+    "test_details": [0, 170, 1332, 203],
+    "threshold_map": [102, 359, 420, 430],
+    "total_deviation": [92, 830, 428, 430],
+    "pattern_deviation": [625, 818, 432, 444],
+    "vfi": [1104, 985, 178, 160]
+}
