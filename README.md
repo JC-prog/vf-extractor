@@ -50,5 +50,15 @@ All dependencies are included in `requirements.txt`.
 git clone https://github.com/yourusername/vf-extractor.git
 cd vf-extractor
 
+# Enable Permissions
+chmod +x install.sh
+
 # Install dependencies
 ./install.sh
+
+```
+
+## Troubleshooting
+- If permission is denied for any of the script run:
+``` bash
+chmod +x <FILE_NAME>.sh
