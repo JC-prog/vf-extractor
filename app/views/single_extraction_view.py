@@ -9,7 +9,6 @@ import pandas as pd
 
 # 1. Directory Configuration
 CURRENT_DIR = Path(__file__).resolve().parent
-# Assuming single_extraction_view.py is in 'app/view/', so APP_DIR is 'app/'
 APP_DIR = CURRENT_DIR.parent
 
 # Key Directories
@@ -29,7 +28,6 @@ TEMPLATE_MAP = {
 
 # For Development (Handling Module Imports)
 try:
-    # Assuming the project root is the parent of APP_DIR
     PROJECT_ROOT = APP_DIR.parent
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.insert(0, str(PROJECT_ROOT))
@@ -46,16 +44,12 @@ def format_data_for_download(data_objects, format_type):
     if not data_objects:
         return "No data extracted.", "text/plain", "data.txt"
 
-    # Assume data_objects is a list where each element is the result (dict/list) from one file extraction
-    
-    # Flatten the extracted data objects into a single list of records/dictionaries
     all_records = []
     for item in data_objects:
         if isinstance(item, list):
             all_records.extend(item)
         elif isinstance(item, dict):
             all_records.append(item)
-        # Add handling for other data structures as needed (e.g., if it returns a specific class object)
         else:
             all_records.append({"data": str(item)}) # Fallback for non-standard data
 
@@ -68,14 +62,86 @@ def format_data_for_download(data_objects, format_type):
             return df.to_csv(index=False), "text/csv", "extracted_data.csv"
         except Exception as e:
             st.error(f"Error converting data to CSV: {e}")
-            # Fallback to text format on CSV failure
             return "\n".join(str(d) for d in data_objects), "text/plain", "extracted_data_error.txt"
         
     elif format_type == "TXT":
-        # Simple string representation of all extracted data
         return "\n".join(str(d) for d in data_objects), "text/plain", "extracted_data.txt"
 
     return "Format not supported.", "text/plain", "data.txt"
+
+# Function to process files
+def process_file(uploaded_file, eye_name, template_path, extracted_data_objects, extracted_data_list):
+    """
+    Processes an uploaded file. If it's a PDF, converts it to PNG image(s) 
+    in a temporary location before running the cropped_pipeline.
+    Updates the provided extracted_data_objects and extracted_data_list in place.
+    """
+    if uploaded_file is None:
+        return
+
+    original_filename_stem = Path(uploaded_file.name).stem
+    file_suffix = Path(uploaded_file.name).suffix.lower()
+    OUTPUT_DIR = DATA_DIR / original_filename_stem
+    
+    files_to_process = []
+    temp_files_to_clean = [] 
+
+    # 1. Handle File Upload and Temporary Storage
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
+        uploaded_file.seek(0) 
+        tmp_file.write(uploaded_file.read())
+        uploaded_file_path = tmp_file.name
+        temp_files_to_clean.append(uploaded_file_path)
+
+    # 2. Check for PDF and Convert if necessary
+    if file_suffix == '.pdf':
+        try:
+            pdf_pages = convert_from_path(uploaded_file_path)
+            
+            for i, img in enumerate(pdf_pages):
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as png_tmp_file:
+                    png_output_path = png_tmp_file.name
+                
+                img.save(png_output_path, "PNG")
+                
+                files_to_process.append(png_output_path)
+                temp_files_to_clean.append(png_output_path)
+                
+            st.info(f"PDF converted to {len(files_to_process)} PNG file(s) for {eye_name}.")
+            
+        except Exception as e:
+            st.error(f"PDF conversion failed for {eye_name}: {e}")
+            files_to_process = [] 
+            
+    else:
+        files_to_process.append(uploaded_file_path)
+
+    # 3. Process the file(s)
+    
+    if files_to_process:
+        for tmp_file_path in files_to_process:
+            try:
+                # Assuming cropped_pipeline handles a single file path and returns data
+                data = cropped_pipeline(tmp_file_path, template_path, OUTPUT_DIR)
+                
+                # --- CRITICAL FIX: Append to the passed-in lists ---
+                extracted_data_objects.append(data) 
+                
+                if file_suffix == '.pdf':
+                    extracted_data_list.append(f"{eye_name} Data Extracted (Page {files_to_process.index(tmp_file_path) + 1}).")
+                else:
+                    extracted_data_list.append(f"{eye_name} Data Extracted.")
+                    
+            except Exception as e:
+                st.error(f"Extraction failed for {eye_name} ({Path(tmp_file_path).name}): {e}")
+
+    # 4. Cleanup
+    for file_to_unlink in temp_files_to_clean:
+        try:
+            os.unlink(file_to_unlink)
+        except OSError as e:
+            print(f"Error cleaning up temporary file {file_to_unlink}: {e}")
 
 
 def single_extraction_view():
@@ -86,25 +152,30 @@ def single_extraction_view():
     # --- File Uploads ---
     with le_col:
         st.header("Left Eye - OS")
+        # NOTE: Allowing PDF upload since process_file handles conversion
         uploaded_file_lehvf = st.file_uploader(
-            "Upload **HVF** image file (PNG/JPG)",
-            type=["png", "jpg", "jpeg"],
+            "Upload **HVF** image/PDF file",
+            type=["png", "jpg", "jpeg", "pdf"],
             key="lehvf_uploader"
         )
         if uploaded_file_lehvf is not None:
             st.success(f"File uploaded: {uploaded_file_lehvf.name}")
-            st.image(uploaded_file_lehvf, caption=f"Preview: {uploaded_file_lehvf.name}")
+            # Do not display PDF preview directly, as Streamlit cannot preview arbitrary PDFs
+            if uploaded_file_lehvf.type != "application/pdf":
+                st.image(uploaded_file_lehvf, caption=f"Preview: {uploaded_file_lehvf.name}")
+
 
     with re_col:
         st.header("Right Eye - OD")
         uploaded_file_rehvf = st.file_uploader(
-            "Upload **HVF** image file (PNG/JPG)",
-            type=["png", "jpg", "jpeg"],
+            "Upload **HVF** image/PDF file",
+            type=["png", "jpg", "jpeg", "pdf"],
             key="rehvf_uploader"
         )
         if uploaded_file_rehvf is not None:
             st.success(f"File uploaded: {uploaded_file_rehvf.name}")
-            st.image(uploaded_file_rehvf, caption=f"Preview: {uploaded_file_rehvf.name}")
+            if uploaded_file_rehvf.type != "application/pdf":
+                st.image(uploaded_file_rehvf, caption=f"Preview: {uploaded_file_rehvf.name}")
     
     # --- Function/Option Container ---
     function_container = st.container()
@@ -133,7 +204,7 @@ def single_extraction_view():
 
         if pipeline_button:
             if uploaded_file_lehvf is None and uploaded_file_rehvf is None:
-                st.warning("Please upload at least one image file (HVF) for extraction.")
+                st.warning("Please upload at least one file (HVF) for extraction.")
                 st.session_state.extracted_text = "No file uploaded."
                 st.session_state.extracted_data_objects = []
                 return
@@ -148,42 +219,19 @@ def single_extraction_view():
                 extracted_data_list = [] # List for string summary
                 extracted_data_objects = [] # List for structured data
 
-                # Process files helper function
-                def process_file(uploaded_file, eye_name, template_path):
-                    if uploaded_file is None:
-                        return
-
-                    original_filename = Path(uploaded_file.name).stem
-                    OUTPUT_DIR = DATA_DIR / original_filename
-
-                    # Use tempfile.NamedTemporaryFile for automatic cleanup
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.name).suffix) as tmp_file:
-                        uploaded_file.seek(0) 
-                        tmp_file.write(uploaded_file.read())
-                        tmp_file_path = tmp_file.name
-                    
-                    try:
-                        data = cropped_pipeline(tmp_file_path, template_path, OUTPUT_DIR)
-                        extracted_data_objects.append(data)
-                        extracted_data_list.append(f"{eye_name} Data Extracted.")
-                    except Exception as e:
-                        st.error(f"Extraction failed for {eye_name}: {e}")
-                    finally:
-                        os.unlink(tmp_file_path)
-
                 with st.spinner("Extraction Data from Left Eye..."):
                     # Process Left Eye
                     left_template_path = selected_template_path.with_stem(
                         selected_template_path.stem + "_left"
                     )
-                    process_file(uploaded_file_lehvf, "Left Eye HVF", left_template_path)
+                    process_file(uploaded_file_lehvf, "Left Eye HVF", left_template_path, extracted_data_objects, extracted_data_list)
                 
                 with st.spinner("Extracting Data from Right Eye..."):
                     # Process Right Eye
                     right_template_path = selected_template_path.with_stem(
                         selected_template_path.stem + "_right"
                     )
-                    process_file(uploaded_file_rehvf, "Right Eye HVF", right_template_path)
+                    process_file(uploaded_file_rehvf, "Right Eye HVF", right_template_path, extracted_data_objects, extracted_data_list)
 
 
                 final_data_summary = "\n".join(extracted_data_list)
@@ -196,7 +244,6 @@ def single_extraction_view():
                     st.session_state.extracted_data_objects = []
 
         # --- Download Logic ---
-        # The data for download is formatted using the selected output_format
         extracted_objects = st.session_state.get('extracted_data_objects', [])
         
         download_data, download_mime, download_filename = format_data_for_download(
