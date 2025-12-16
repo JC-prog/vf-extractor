@@ -1,0 +1,50 @@
+{
+    "header": {
+        "crop_region" : [0, 0, 860, 123],
+        "labels" : [
+            "Patient",
+            "Sex",
+            "Date of Birth",
+            "Sex",
+            "Patient ID"
+        ]
+    },
+    "test_details" : {
+        "crop_region" : [0, 170, 1332, 203],
+        "labels" : [
+            "Eye",
+            "Stimulus",
+            "Date",
+            "Fixation Losses",
+            "Strategy",
+            "Time",
+            "False Positive Errors",
+            "Pattern",
+            "Exam Duration",
+            "False Negative Errors",
+            "Fixation Target",
+            "Age"
+        ]
+    },
+    "threshold_map" : {
+        "crop_region" : [102, 359, 420, 430],
+        "labels" : []
+    },
+    "total_deviation" : {
+        "crop_region" : [92, 830, 428, 430],
+        "labels" : []
+    },
+    "pattern_deviation" : {
+        "crop_region" : [625, 818, 432, 444],
+        "labels" : [
+        ]
+    },
+    "vfi" : {
+        "crop_region" : [625, 818, 432, 444],
+        "labels" : [
+            "VFI",
+            "MD",
+            "PSD"
+        ]
+    }
+}

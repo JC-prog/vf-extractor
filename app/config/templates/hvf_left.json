@@ -22,15 +22,39 @@
     },
     "threshold_map" : {
         "crop_region" : [348, 612, 517, 507],
-        "labels" : []
+        "labels" : [
+            "ST1", "ST2", "SN2", "SN1", "ST3", "ST4", "ST5", "SN5", "SN4", "SN3",
+            "ST6", "ST7", "ST8", "ST9", "SN9", "SN8", "SN7", "SN6", "ST10", "ST11",
+            "ST12", "ST13", "SN14", "SN13", "SN12", "SN11", "SN10",
+            "IT10", "IT11", "IT12", "IT13", "IN14", "IN13", "IN12", "IN11", "IN10",
+            "IT6", "IT7", "IT8", "IT9", "IN9", "IN8", "IN7", "IN6",
+            "IT3", "IT4", "IT5", "IN5", "IN4", "IN3", 
+            "IT1", "IT2", "IN2", "IN1"
+        ]
     },
     "total_deviation" : {
         "crop_region" : [168, 1079, 379, 346],
-        "labels" : []
+        "labels" : [
+            "ST1","ST2","SN2","SN1",
+            "ST3","ST4","ST5","SN5","SN4","SN3",
+            "ST6","ST7","ST8","ST9","SN9","SN8","SN7","SN6",
+            "ST10","ST11","ST12","SN14","SN13","SN12","SN11","SN10",
+            "IT10","IT11","IT12","IN14","IN13","IN12","IN11","IN10",
+            "IT6","IT7","IT8","IT9","IN9","IN8","IN7","IN6",
+            "IT3","IT4","IT5","IN5","IN4","IN3",
+            "IT1","IT2","IN2","IN1"
+        ]
     },
     "pattern_deviation" : {
         "crop_region" : [679, 1077, 379, 346],
-        "labels" : []
+        "labels" : ["ST1","ST2","SN2","SN1",
+            "ST3","ST4","ST5","SN5","SN4","SN3",
+            "ST6","ST7","ST8","ST9","SN9","SN8","SN7","SN6",
+            "ST10","ST11","ST12","SN14","SN13","SN12","SN11","SN10",
+            "IT10","IT11","IT12","IN14","IN13","IN12","IN11","IN10",
+            "IT6","IT7","IT8","IT9","IN9","IN8","IN7","IN6",
+            "IT3","IT4","IT5","IN5","IN4","IN3",
+            "IT1","IT2","IN2","IN1"]
     },
     "ght_vfi" : {
         "crop_region" : [1100, 1245, 526, 275],

@@ -43,6 +43,50 @@ def normalize_header_data(raw_data: str, template_labels: List[str]) -> Dict[str
             
     return normalized
 
+def normalize_map_data(raw_data: str, template_labels: List[str]) -> Dict[str, str]:
+    """
+    Cleans and normalizes map-like data from a raw OCR string (e.g., threshold map).
+
+    The raw data is assumed to be a string of comma-separated values.
+    It maps *only* the numeric values found in the data to the template labels
+    in the order they appear.
+
+    Args:
+        raw_data: The raw OCR string for a section (e.g., "29,28,...,30").
+        template_labels: The list of expected keys/labels (e.g., STATIC_MAP_LABELS).
+
+    Returns:
+        A dictionary mapping template labels to their extracted numeric values (as strings),
+        or an empty string if no value was available for that label.
+    """
+
+    parts = [p.strip() for p in raw_data.split(',')]
+    numeric_values = []
+    
+    for part in parts:
+        cleaned_part = re.sub(r'[^\d]+$', '', part) 
+        print("Clean Part: " + cleaned_part)
+        if cleaned_part.isdigit():
+            numeric_values.append(cleaned_part)
+  
+    normalized: Dict[str, str] = {}
+    
+    num_labels = len(template_labels)
+    num_values = len(numeric_values)
+    print("Number of labels: " + str(num_labels))
+    print("Number of values: " + str(num_values))
+    map_count = min(num_labels, num_values)
+    
+    for i in range(map_count):
+        label = template_labels[i]
+        value = numeric_values[i]
+        normalized[label] = value
+        
+    for label in template_labels:
+        if label not in normalized:
+            normalized[label] = ""
+            
+    return normalized
 
 def normalize_data(template: Dict[str, Any], extracted_data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -65,8 +109,14 @@ def normalize_data(template: Dict[str, Any], extracted_data: Dict[str, Any]) -> 
             final_output[section_name] = raw_section_data
             continue
 
-        if section_name in ["header", "ght_vfi"]:
+        if section_name in ["header", "test_details", "ght_vfi", "vfi"]:
             normalized_section = normalize_header_data(raw_section_data, template_labels)
+            
+            for key, value in normalized_section.items():
+                final_output[f"{section_name}_{key}"] = value
+
+        if section_name in ["threshold_map", "total_deviation", "pattern_deviation"]:
+            normalized_section = normalize_map_data(raw_section_data, template_labels)
             
             for key, value in normalized_section.items():
                 final_output[f"{section_name}_{key}"] = value
