@@ -1,36 +1,18 @@
 @echo off
+cd /d "%~dp0"
 SETLOCAL
 
-:: ----------------------------
-:: Configurable ports
-:: ----------------------------
-set STREAMLIT_PORT=8501
+set PY=venv\Scripts\python.exe
+set PORT=8501
 
-:: ----------------------------
-:: Activate virtual environment
-:: ----------------------------
-:: call venv\Scripts\activate.bat
-
-:: ----------------------------
-:: Check if port is free
-:: ----------------------------
-netstat -ano | findstr :%STREAMLIT_PORT%
-IF %ERRORLEVEL%==0 (
-    echo Port %STREAMLIT_PORT% is in use. Please free it first.
+IF NOT EXIST "%PY%" (
+    echo ERROR: venv not found
+    pause
     exit /b 1
 )
 
-:: ----------------------------
-:: Start Streamlit app
-:: ----------------------------
-echo Starting Streamlit app at http://127.0.0.1:%STREAMLIT_PORT%...
-:: start "Streamlit" cmd /k "streamlit run app\app.py --server.port %STREAMLIT_PORT%"
+echo Starting Streamlit at http://127.0.0.1:%PORT%
+echo Close this window to stop the app.
+echo.
 
-:: ----------------------------
-:: Open browser
-:: ----------------------------
-:: start "" http://127.0.0.1:%STREAMLIT_PORT%
-
-echo Press Ctrl+C to stop servers. Close the command windows to exit.
-
-ENDLOCAL
+"%PY%" -m streamlit run app\app.py --server.port %PORT%
