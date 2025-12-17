@@ -45,39 +45,50 @@ def normalize_header_data(raw_data: str, template_labels: List[str]) -> Dict[str
 
 def normalize_map_data(raw_data: str, template_labels: List[str]) -> Dict[str, str]:
     """
-    Cleans and normalizes map-like data from a raw OCR string (e.g., threshold map).
+    Cleans and normalizes map-like data from a raw OCR string, designed for structured data like visual field maps.
 
-    The raw data is assumed to be a string of comma-separated values.
-    It maps *only* the numeric values found in the data to the template labels
-    in the order they appear.
+    The function assumes the raw data contains values intended to be mapped sequentially
+    to the `template_labels`. It performs robust cleaning steps to handle common OCR errors:
+
+    1.  **Delimitation:** Splits the string by commas (`,`).
+    2.  **Internal Spacing:** If an extracted part contains internal whitespace (e.g., ' -1 -2 '), it is split further to separate merged values.
+    3.  **Numeric Filtering:** It strictly filters for values that represent **signed integers** (positive or negative, including optional trailing dots for OCR noise, e.g., '31.' or '-5'). All non-numeric characters (like symbols or text) are discarded.
+    4.  **Mapping:** The filtered numeric values are mapped sequentially to the `template_labels` in the order they appear.
+    5.  **Handling Gaps:** If there are fewer numeric values than `template_labels`, the remaining labels are filled with an empty string ('').
 
     Args:
-        raw_data: The raw OCR string for a section (e.g., "29,28,...,30").
-        template_labels: The list of expected keys/labels (e.g., STATIC_MAP_LABELS).
+        raw_data: The raw OCR string for a section (e.g., "29,28,...,30" or "-5, -1 0, \u0394, -3").
+        template_labels: The list of expected keys/labels (e.g., STATIC_MAP_LABELS) to structure the output.
 
     Returns:
-        A dictionary mapping template labels to their extracted numeric values (as strings),
-        or an empty string if no value was available for that label.
+        A dictionary mapping every template label to either its extracted and cleaned numeric value (as a string) 
+        or an empty string if no corresponding value was found in the data stream.
     """
 
-    parts = [p.strip() for p in raw_data.split(',')]
+    initial_parts = [p.strip() for p in raw_data.split(',')]
+    
+    parts = []
+    for part in initial_parts:
+        if ' ' in part and re.search(r'[^\s]', part):
+            parts.extend([p.strip() for p in part.split(' ') if p.strip()])
+        elif part:
+            parts.append(part)
+    
+    SIGNED_INTEGER_PATTERN = re.compile(r'^\s*([+-]?\d+)\.?\s*$')
+    
     numeric_values = []
-    print(parts)
+
     for part in parts:
-        cleaned_part = re.sub(r'[^\d]+$', '', part) 
-        if cleaned_part.isdigit():
-            numeric_values.append(cleaned_part)
-  
+        match = SIGNED_INTEGER_PATTERN.match(part)
+        
+        if match:
+            cleaned_value = match.group(1)
+            numeric_values.append(cleaned_value)
+            
     normalized: Dict[str, str] = {}
     
     num_labels = len(template_labels)
     num_values = len(numeric_values)
-    print("Number of labels: " + str(num_labels))
-    print("Labels: ")
-    print(template_labels)
-    print("Number of values: " + str(num_values))
-    print("Labels: ")
-    print(numeric_values)
 
     map_count = min(num_labels, num_values)
     
