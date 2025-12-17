@@ -62,10 +62,9 @@ def normalize_map_data(raw_data: str, template_labels: List[str]) -> Dict[str, s
 
     parts = [p.strip() for p in raw_data.split(',')]
     numeric_values = []
-    
+    print(parts)
     for part in parts:
         cleaned_part = re.sub(r'[^\d]+$', '', part) 
-        print("Clean Part: " + cleaned_part)
         if cleaned_part.isdigit():
             numeric_values.append(cleaned_part)
   
@@ -74,7 +73,12 @@ def normalize_map_data(raw_data: str, template_labels: List[str]) -> Dict[str, s
     num_labels = len(template_labels)
     num_values = len(numeric_values)
     print("Number of labels: " + str(num_labels))
+    print("Labels: ")
+    print(template_labels)
     print("Number of values: " + str(num_values))
+    print("Labels: ")
+    print(numeric_values)
+
     map_count = min(num_labels, num_values)
     
     for i in range(map_count):

@@ -186,19 +186,13 @@ def single_extraction_view():
         if 'extracted_data_objects' not in st.session_state:
             st.session_state.extracted_data_objects = []
 
-        # 2.1 Template selection
+        # Template selection
         template_options = list(TEMPLATE_MAP.keys())
         template_selection = st.selectbox(
             "Select Template: ",
             template_options
         )
         selected_template_path = TEMPLATE_MAP.get(template_selection)
-
-        # 2.2 Export format selection
-        output_format = st.selectbox(
-            "Select export format",
-            ("CSV", "TXT", "JSON")
-        )
 
         pipeline_button = st.button("Run Pipeline", type="primary")
 
@@ -243,25 +237,36 @@ def single_extraction_view():
                     st.session_state.extracted_text = "Extraction failed or returned no data."
                     st.session_state.extracted_data_objects = []
 
-        # --- Download Logic ---
-        extracted_objects = st.session_state.get('extracted_data_objects', [])
-        
-        download_data, download_mime, download_filename = format_data_for_download(
-            extracted_objects, 
-            output_format
-        )
-
         # Display the current state (helpful for debugging)
         st.write(f"Current extraction status: **{st.session_state.get('extracted_text', 'Text not extracted')}**")
 
-        st.download_button(
-            label=f"Download {output_format}",
-            data=download_data,
-            file_name=download_filename,
-            mime=download_mime,
-            icon=":material/download:",
-            disabled=(not st.session_state.extracted_data_objects)
-        )
+        # --- Download Logic ---
+        if st.session_state.extracted_data_objects:
+            # Export format selection
+            output_format = st.selectbox(
+                "Select export format",
+                ("CSV", "TXT", "JSON")
+            )
+
+            extracted_objects = st.session_state.get('extracted_data_objects', [])
+            
+            download_data, download_mime, download_filename = format_data_for_download(
+                extracted_objects, 
+                output_format
+            )
+
+            st.download_button(
+                label=f"Download {output_format}",
+                data=download_data,
+                file_name=download_filename,
+                mime=download_mime,
+                icon=":material/download:",
+            )
+
+            with st.expander("Output"):
+                st.write(
+                    extracted_objects
+                )
         
 # Run the main function
 if __name__ == '__main__':
