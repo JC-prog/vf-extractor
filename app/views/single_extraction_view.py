@@ -32,8 +32,10 @@ try:
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.insert(0, str(PROJECT_ROOT))
 
+    from vfextractor.preprocessing.converter import convert_from_path
     from vfextractor.postprocessing.extract import Extractor
     from vfextractor.pipeline.pipeline import cropped_pipeline
+    
 except ModuleNotFoundError as e:
     st.error(f"Error loading module: {e}. Ensure 'vfextractor' is installed or the project root is correctly added to system path: {PROJECT_ROOT}")
 

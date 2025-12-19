@@ -64,8 +64,10 @@ def normalize_map_data(raw_data: str, template_labels: List[str]) -> Dict[str, s
         A dictionary mapping every template label to either its extracted and cleaned numeric value (as a string) 
         or an empty string if no corresponding value was found in the data stream.
     """
+    # Remove Pipe
+    normalized_input = raw_data.replace('|', ' ')
 
-    initial_parts = [p.strip() for p in raw_data.split(',')]
+    initial_parts = [p.strip() for p in normalized_input.split(',')]
     
     parts = []
     for part in initial_parts:
@@ -73,32 +75,23 @@ def normalize_map_data(raw_data: str, template_labels: List[str]) -> Dict[str, s
             parts.extend([p.strip() for p in part.split(' ') if p.strip()])
         elif part:
             parts.append(part)
-    
-    SIGNED_INTEGER_PATTERN = re.compile(r'^\s*([+-]?\d+)\.?\s*$')
+
+    # Supports: "-5", "31.", "+2", "<0", "< -1"
+    SIGNED_INTEGER_PATTERN = re.compile(r'^\s*(<?\s*[+-]?\d+)\.?\s*$')
     
     numeric_values = []
 
     for part in parts:
         match = SIGNED_INTEGER_PATTERN.match(part)
-        
         if match:
-            cleaned_value = match.group(1)
+            cleaned_value = match.group(1).replace(" ", "")
             numeric_values.append(cleaned_value)
             
     normalized: Dict[str, str] = {}
-    
-    num_labels = len(template_labels)
-    num_values = len(numeric_values)
-
-    map_count = min(num_labels, num_values)
-    
-    for i in range(map_count):
-        label = template_labels[i]
-        value = numeric_values[i]
-        normalized[label] = value
-        
-    for label in template_labels:
-        if label not in normalized:
+    for i, label in enumerate(template_labels):
+        if i < len(numeric_values):
+            normalized[label] = numeric_values[i]
+        else:
             normalized[label] = ""
             
     return normalized

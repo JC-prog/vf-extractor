@@ -83,6 +83,17 @@ def cropped_pipeline(image_path, crop_coordinates, output_dir=None):
         # Extract data from the cropped image
         raw_extracted_data[section_name] = extractor.extract(cropped_img)
 
+    if output_dir_path:
+        raw_extracted_data_filename = f"{image_base_name}_raw.json"
+        save_path = output_dir_path / raw_extracted_data_filename
+
+        save_json(
+            data=raw_extracted_data,
+            output_path=save_path
+        )
+
+        logger.debug(f"Saved Extracted raw data to : {save_path}")
+
     # Normalize and Flatten Data
     logger.info("Normalizing and flattening extracted data.")
     normalized_data = normalize_data(template=template_data, extracted_data=raw_extracted_data)
