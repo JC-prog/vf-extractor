@@ -194,12 +194,24 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# AI-assisted coding tools
+# Claude Code
+.claude/
 # Cursor
-#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
-#  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+.cursor/
+# GitHub Copilot
+.copilot/
+.github/copilot-instructions.md
+# Windsurf
+.windsurf/
+# Codeium
+.codeium/
+# Continue
+.continue/
+# Aider
+.aider*
 
 # Marimo
 marimo/_static/
