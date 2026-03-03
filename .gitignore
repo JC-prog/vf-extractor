@@ -1,3 +1,9 @@
+# Portable distribution build output
+dist/
+
+# Pre-downloaded PaddleOCR models (populated by scripts/download_models.py)
+models/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
