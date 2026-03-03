@@ -83,7 +83,7 @@ def process_file(uploaded_file, eye_name, template_path, extracted_data_objects,
 
     original_filename_stem = Path(uploaded_file.name).stem
     file_suffix = Path(uploaded_file.name).suffix.lower()
-    OUTPUT_DIR = DATA_DIR / original_filename_stem
+    OUTPUT_DIR = DATA_DIR / 'output' / original_filename_stem
     
     files_to_process = []
     temp_files_to_clean = [] 
